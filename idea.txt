@@ -1,0 +1,1030 @@
+# Build: India-Specific Laptop Dataset Collection Pipeline
+
+## Role
+
+Act as a senior Python data engineer specializing in web data collection, data cleaning, normalization, and ML dataset preparation.
+
+I am building a resume-level **AI/ML laptop recommendation system focused on the Indian market**.
+
+Your job right now is ONLY to build the **data collection pipeline**.
+
+Do NOT build the recommendation model yet.
+
+Do NOT build any frontend, dashboard, website, charts, GUI, or admin panel.
+
+I only need **pure, clean, structured laptop data** that I can later use to train/build the recommendation system.
+
+The only interface should be the **terminal/CLI**.
+
+---
+
+# 1. Main Goal
+
+Build a robust scraper/data pipeline that can collect approximately:
+
+**2,000–3,000 unique Indian laptop configurations**
+
+from multiple legitimate/publicly accessible Indian sources.
+
+Potential sources:
+
+* Flipkart
+* Amazon India
+* Croma
+* Reliance Digital
+* Smartprix
+* Other suitable Indian laptop retailers/catalogs where legitimate and permitted
+
+Before implementing a collector for a source, verify that automated collection is allowed and that the required data is publicly accessible.
+
+Do NOT bypass:
+
+* CAPTCHAs
+* authentication
+* access controls
+* anti-bot protections
+* rate limits
+* robots restrictions
+* Terms of Service
+
+If a source cannot be legitimately automated, make that source optional/disabled rather than attempting to bypass restrictions.
+
+---
+
+# 2. Important Principle
+
+The scraper should collect **objective laptop facts**.
+
+It should NOT try to determine whether a laptop is:
+
+* Gaming
+* Office
+* Video editing
+* AI/ML
+* Coding
+* Student
+
+during scraping.
+
+Those classifications/scores will be created later using benchmark data and feature engineering.
+
+The current project is only:
+
+```text
+SOURCE
+  ↓
+DISCOVERY
+  ↓
+SCRAPE
+  ↓
+RAW DATA
+  ↓
+PARSE
+  ↓
+NORMALIZE
+  ↓
+VALIDATE
+  ↓
+DEDUPLICATE
+  ↓
+FINAL DATASET
+```
+
+---
+
+# 3. No UI
+
+This project must have:
+
+* NO frontend
+* NO React
+* NO web dashboard
+* NO GUI
+* NO admin panel
+* NO charts
+* NO visualization
+
+Only:
+
+```text
+Terminal / CLI
+```
+
+Example:
+
+```text
+python scraper.py
+```
+
+The terminal should show useful progress and statistics.
+
+---
+
+# 4. Dataset Size
+
+Target:
+
+```text
+Minimum: 2,000 unique laptops
+Preferred: 2,500–3,000 unique laptops
+```
+
+The scraper may collect more raw records because the same laptop can appear on multiple sources.
+
+Example:
+
+```text
+4,000 raw records
+        ↓
+cleaning
+        ↓
+deduplication
+        ↓
+2,500 unique laptop configurations
+```
+
+Do NOT generate fake/synthetic duplicate laptops to increase dataset size.
+
+---
+
+# 5. Data Collection Architecture
+
+Use modular source adapters.
+
+Conceptually:
+
+```text
+collectors/
+    flipkart/
+    amazon/
+    croma/
+    reliance/
+    smartprix/
+```
+
+Each source should have the same conceptual interface:
+
+```text
+discover products
+fetch product
+extract raw fields
+return normalized candidate data
+```
+
+If one website changes its HTML structure, only that source's collector should need modification.
+
+Do NOT create one giant scraper containing all website-specific logic.
+
+---
+
+# 6. Discovery
+
+First discover product URLs from legitimate listing/search/category pages.
+
+Potential categories:
+
+* Gaming laptops
+* Business laptops
+* Student laptops
+* Thin and light
+* Creator laptops
+* Budget laptops
+* Premium laptops
+* RTX laptops
+* Intel laptops
+* AMD Ryzen laptops
+* MacBooks
+* 2-in-1 laptops
+
+Discovery should collect at least:
+
+```text
+source
+product_name
+product_url
+listing_price
+discovery_timestamp
+```
+
+Do not scrape every specification during discovery if it is inefficient.
+
+The discovered URLs should enter a persistent queue.
+
+---
+
+# 7. Persistent URL Queue
+
+Create a persistent scraping job system.
+
+Each URL/job should have a status:
+
+```text
+pending
+processing
+completed
+failed
+retry
+blocked
+invalid
+```
+
+Track:
+
+```text
+url
+source
+status
+attempt_count
+last_attempt
+error_reason
+created_at
+updated_at
+```
+
+The scraper must be resumable.
+
+If it crashes after 1,500 products, restarting it must continue from unfinished jobs instead of starting over.
+
+---
+
+# 8. Raw Data
+
+Always preserve the original scraped values.
+
+Example:
+
+```text
+raw_ram = "16GB DDR5-4800 RAM"
+```
+
+Then parse it into:
+
+```text
+ram_gb = 16
+ram_type = DDR5
+ram_speed_mhz = 4800
+```
+
+Do NOT throw away the raw value.
+
+This allows us to improve parsers later without scraping the website again.
+
+Store raw and structured data separately.
+
+---
+
+# 9. Required Dataset Columns
+
+Build the initial schema around these fields.
+
+## Product
+
+```text
+laptop_id
+brand
+model_name
+model_number
+product_url
+source
+scraped_date
+```
+
+## Price
+
+```text
+price_inr
+mrp_inr
+discount_percent
+availability
+seller
+```
+
+## Reviews
+
+```text
+rating
+review_count
+```
+
+## CPU
+
+```text
+cpu_brand
+cpu_model
+cpu_generation
+cpu_cores
+cpu_threads
+cpu_base_clock_ghz
+cpu_max_clock_ghz
+```
+
+## RAM
+
+```text
+ram_gb
+ram_type
+ram_speed_mhz
+ram_slots
+max_ram_gb
+upgradeable_ram
+```
+
+## Storage
+
+```text
+storage_gb
+storage_type
+storage_interface
+storage_slots
+expandable_storage
+```
+
+## GPU
+
+```text
+gpu_brand
+gpu_model
+gpu_vram_gb
+gpu_type
+gpu_tgp_w
+gpu_integrated_model
+```
+
+## Display
+
+```text
+screen_size_in
+resolution
+resolution_width
+resolution_height
+refresh_rate_hz
+panel_type
+brightness_nits
+color_gamut
+touchscreen
+```
+
+## Battery / portability
+
+```text
+battery_wh
+weight_kg
+charger_w
+battery_cells
+```
+
+## Connectivity
+
+```text
+wifi_version
+bluetooth_version
+usb_ports
+usb_c
+thunderbolt
+hdmi_version
+ethernet
+sd_card_reader
+```
+
+## Other
+
+```text
+os
+os_version
+keyboard_backlight
+fingerprint_reader
+webcam_resolution
+warranty_years
+```
+
+Do not invent missing values.
+
+Use NULL for genuinely unavailable fields.
+
+---
+
+# 10. Normalization
+
+Create a reusable normalization layer.
+
+Examples:
+
+```text
+₹79,990
+Rs 79,990
+79990
+
+→ 79990
+```
+
+```text
+512 GB
+512GB
+0.5 TB
+
+→ 512 GB
+```
+
+```text
+2300 g
+2.3 kg
+
+→ 2.3 kg
+```
+
+```text
+RTX 4050
+NVIDIA GeForce RTX 4050
+RTX4050 Laptop GPU
+
+→ RTX 4050
+```
+
+```text
+Intel Core i7 13620H
+Intel i7-13620H
+Core i7 13th Gen 13620H
+
+→ Intel i7-13620H
+```
+
+Normalize casing, whitespace, units, currency, CPU names, GPU names, RAM, storage, display resolution, etc.
+
+---
+
+# 11. Deduplication
+
+The same laptop can appear on multiple websites.
+
+Example:
+
+```text
+Flipkart:
+ASUS TUF A15 FA507NUR
+
+Amazon:
+ASUS TUF Gaming A15 FA507NUR
+
+Croma:
+ASUS TUF A15 FA507NUR
+```
+
+These may be the same configuration.
+
+Use a canonical identity based on fields such as:
+
+```text
+brand
+model_number
+CPU
+RAM
+storage
+GPU
+display
+```
+
+Prefer model number when available.
+
+Use fuzzy matching only when necessary.
+
+Do NOT blindly merge ambiguous records.
+
+If uncertain, flag the record for review.
+
+---
+
+# 12. Preserve Multiple Sources
+
+Deduplication should NOT delete source-level information.
+
+One laptop should be able to have multiple price records:
+
+```text
+Laptop:
+ASUS TUF A15 FA507NUR
+
+Flipkart → ₹79,990
+Amazon → ₹81,499
+Croma → ₹82,990
+```
+
+Therefore use separate conceptual entities:
+
+```text
+Laptop
+Price Observation
+Source
+```
+
+---
+
+# 13. Price History
+
+Design the system so repeated scraping does NOT overwrite old prices.
+
+Example:
+
+```text
+2026-08-22 → ₹79,990
+2026-08-25 → ₹78,990
+2026-09-01 → ₹76,990
+```
+
+Each observation should include:
+
+```text
+laptop_id
+source
+seller
+price_inr
+mrp_inr
+availability
+product_url
+timestamp
+```
+
+This will later allow us to calculate:
+
+* current price
+* average price
+* lowest price
+* price trend
+* discount from recent average
+
+---
+
+# 14. Missing Data
+
+Missing data is acceptable.
+
+Example:
+
+```text
+battery_wh = NULL
+```
+
+Do not discard the whole laptop just because one field is missing.
+
+If a field is missing from one source, optionally try to enrich it from another legitimate source.
+
+Example:
+
+```text
+Flipkart
+    ↓
+battery missing
+    ↓
+trusted second source
+    ↓
+battery found
+```
+
+Track the provenance of enriched information.
+
+Never invent hardware specifications.
+
+---
+
+# 15. Validation
+
+Before accepting a record into the final dataset, validate it.
+
+Examples:
+
+### Price
+
+* positive
+* valid currency
+* detect obviously suspicious values
+
+### RAM
+
+* plausible capacity
+* valid RAM type
+
+### Storage
+
+* positive
+* correct units
+
+### Display
+
+* plausible screen size
+* valid resolution
+* plausible refresh rate
+
+### GPU
+
+* known/valid model
+* plausible VRAM
+* detect parsing mistakes
+
+### CPU
+
+* valid model format
+* plausible cores/threads
+
+Use:
+
+```text
+valid
+warning
+invalid
+```
+
+rather than silently deleting suspicious records.
+
+---
+
+# 16. Retry System
+
+Temporary failures should be retried.
+
+Example:
+
+```text
+Attempt 1 → failed
+Attempt 2 → failed
+Attempt 3 → success
+```
+
+After the configured retry limit:
+
+```text
+status = failed
+error_reason = ...
+```
+
+Do not retry indefinitely.
+
+Do not implement anti-bot evasion.
+
+---
+
+# 17. Rate Limiting
+
+Implement responsible request handling:
+
+* configurable delays
+* source-specific rate limits
+* exponential backoff
+* reasonable concurrency
+* retry limits
+
+The system must prioritize reliability and compliance over scraping speed.
+
+---
+
+# 18. Logging
+
+Maintain structured logs.
+
+Each run should track:
+
+```text
+run_id
+source
+start_time
+end_time
+URLs discovered
+URLs processed
+successful
+failed
+retried
+duplicates
+invalid
+unique laptops
+```
+
+Example terminal output:
+
+```text
+========================================
+ INDIA LAPTOP DATA COLLECTOR
+========================================
+
+Target unique laptops: 3000
+
+[Flipkart]
+Discovered: 1284
+Processed: 1100
+Successful: 1047
+Failed: 53
+
+[Amazon]
+Discovered: 1021
+Processed: 856
+Successful: 811
+
+----------------------------------------
+Raw records:          3421
+Duplicates:            712
+Unique laptops:       2709
+Invalid records:        31
+----------------------------------------
+
+Dataset collection completed.
+```
+
+---
+
+# 19. Output Format
+
+The main goal is pure data.
+
+Create:
+
+```text
+data/
+    raw/
+    processed/
+    exports/
+    logs/
+```
+
+Recommended outputs:
+
+```text
+processed/laptops.parquet
+exports/laptops.csv
+exports/prices.csv
+```
+
+Parquet should be the preferred ML dataset format.
+
+CSV should be provided for convenience.
+
+If PostgreSQL is implemented, also support database storage.
+
+---
+
+# 20. Database
+
+Prefer PostgreSQL if practical.
+
+Suggested tables:
+
+```text
+laptops
+prices
+sources
+scrape_runs
+scrape_jobs
+raw_products
+validation_errors
+```
+
+The database should support:
+
+```text
+Laptop
+   │
+   ├── Price observations
+   ├── Source records
+   └── Raw scraped data
+```
+
+Do not create a single giant unstructured table if a relational design is more appropriate.
+
+---
+
+# 21. CLI Only
+
+Provide useful terminal commands.
+
+Conceptually:
+
+```text
+scraper discover
+scraper scrape
+scraper normalize
+scraper validate
+scraper deduplicate
+scraper export
+scraper status
+scraper retry-failed
+```
+
+Or a simpler CLI if appropriate.
+
+The exact CLI design is up to you, but it must be easy to operate from the terminal.
+
+---
+
+# 22. Development Process
+
+Do NOT immediately scrape 3,000 laptops.
+
+Implement progressively.
+
+### Phase 1 — Proof of concept
+
+Use ONE permitted source.
+
+Collect only:
+
+```text
+50–100 products
+```
+
+Verify:
+
+* URL discovery
+* extraction
+* raw storage
+* parser
+* normalization
+* validation
+* database insertion
+* export
+
+### Phase 2
+
+Scale to:
+
+```text
+500 products
+```
+
+Fix:
+
+* parser errors
+* missing fields
+* normalization
+* duplicate detection
+
+### Phase 3
+
+Add additional permitted sources.
+
+### Phase 4
+
+Reach:
+
+```text
+2,000–3,000 unique configurations
+```
+
+### Phase 5
+
+Add historical price collection and enrichment.
+
+---
+
+# 23. Do Not Build These Yet
+
+Do NOT implement:
+
+```text
+Gaming classifier
+Office classifier
+Video editing classifier
+AI/ML classifier
+Recommendation model
+Chatbot
+LLM
+Frontend
+Dashboard
+Visualization
+```
+
+Those are future stages.
+
+For now, focus entirely on producing a **high-quality factual dataset**.
+
+---
+
+# 24. Future ML Layer
+
+The future system will take the dataset and eventually derive features such as:
+
+```text
+CPU performance score
+GPU performance score
+VRAM score
+RAM score
+display score
+battery score
+portability score
+value score
+```
+
+Then produce:
+
+```text
+Gaming Score
+Video Editing Score
+AI/ML Score
+Coding Score
+Office Score
+Student Score
+```
+
+The recommendation engine will eventually accept:
+
+```text
+Budget
+Use case
+Gaming preference
+AI/ML preference
+Editing preference
+Portability
+Minimum RAM
+GPU requirement
+```
+
+and rank laptops accordingly.
+
+But do NOT implement this in the current task.
+
+---
+
+# 25. Testing
+
+Create tests for:
+
+* CPU normalization
+* GPU normalization
+* RAM parsing
+* storage parsing
+* price parsing
+* display parsing
+* unit conversion
+* duplicate detection
+* validation rules
+
+Use realistic examples from Indian laptop listings.
+
+The scraper should be testable without repeatedly accessing live websites.
+
+---
+
+# 26. Documentation
+
+Provide a README explaining:
+
+1. Project purpose
+2. Architecture
+3. Installation
+4. Configuration
+5. CLI commands
+6. Supported sources
+7. Database schema
+8. Dataset schema
+9. Raw vs normalized data
+10. Deduplication strategy
+11. Validation strategy
+12. Retry behavior
+13. Rate limiting
+14. Export format
+15. How to add another source
+
+---
+
+# 27. Final Success Criteria
+
+The project is successful when I can run the CLI and obtain something like:
+
+```text
+Raw records:             4,000+
+Unique laptops:          2,000–3,000
+Multiple sources:        supported
+Price observations:      preserved
+Raw data:                 preserved
+Normalized data:          available
+Duplicates:               handled
+Missing values:           tracked
+Validation:               implemented
+Exports:                  CSV + Parquet
+Database:                 PostgreSQL
+Logs:                     available
+CLI:                      working
+```
+
+The final dataset must be suitable for directly starting the next stage:
+
+**Laptop Recommendation ML System.**
+
+---
+
+# 28. Most Important Requirement
+
+Do not over-engineer the project before proving that data collection works.
+
+Start with:
+
+```text
+ONE SOURCE
+    ↓
+50–100 PRODUCTS
+    ↓
+VERIFY DATA QUALITY
+    ↓
+THEN SCALE
+```
+
+If a source's structure is difficult or inaccessible, do not waste time trying to bypass its restrictions. Move to another legitimate source or use an available public dataset.
+
+The final objective is **clean Indian laptop data**, not a complicated scraper.
+
+Start by analyzing the architecture and source feasibility, then implement the smallest working proof of concept before scaling.

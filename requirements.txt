@@ -1,0 +1,12 @@
+typer
+SQLAlchemy
+requests
+beautifulsoup4
+pandas
+pyarrow
+pydantic
+playwright
+streamlit
+scikit-learn
+pytest
+

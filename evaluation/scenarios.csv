@@ -1,0 +1,7 @@
+scenario_id,use_case,budget,brands,min_ram_gb,min_storage_gb,description
+scenario_1_gaming_70k,gaming,70000,,16,512,Mid-range gaming laptop under ₹70000 with 16GB RAM and 512GB SSD
+scenario_2_student_50k,student-office,50000,,8,256,Everyday college student laptop under ₹50000
+scenario_3_programming_80k,programming,80000,,16,512,Developer workstation under ₹80000 with 16GB RAM
+scenario_4_video_editing_100k,video-editing,100000,,16,512,Creative video editing machine under ₹100000
+scenario_5_portability_75k,portability,75000,,8,256,Lightweight portable laptop under ₹75000 for travel and mobility
+scenario_6_zero_match,gaming,25000,,32,1024,Extreme constraint test case with zero eligible laptops

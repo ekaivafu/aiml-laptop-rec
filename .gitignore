@@ -1,0 +1,44 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Caches and temporary directories
+.pytest_cache/
+.coverage
+htmlcov/
+scratch/
+tmp/
+temp/
+
+# Virtual Environments
+venv/
+env/
+ENV/
+.venv/
+
+# Large database files & backups (>100MB exceeds GitHub limit)
+*.db
+*.db.bak
+*.sqlite
+*.sqlite3
+
+# Cache and scraped logs / raw payloads
+data/cache/
+data/logs/
+data/raw/
+data/processed/
+
+# System and OS files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+
+# IDE and Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Streamlit secrets (keep config.toml)
+.streamlit/secrets.toml
